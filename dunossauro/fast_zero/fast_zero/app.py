@@ -1,12 +1,14 @@
 from http import HTTPStatus
 
 from fastapi import FastAPI, HTTPException
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from fast_zero.models import User
 from fast_zero.schemas import Message, UserDB, UserList, UserPublic, UserSchema
 from fast_zero.settings import Settings
+
+from fast_zero.database import get_session
 
 app = FastAPI()
 
@@ -21,9 +23,8 @@ database = []
 
 @app.post('/users/', status_code=HTTPStatus.CREATED, response_model=UserPublic)
 def create_user(user: UserSchema):
-    engine = create_engine(Settings().DATABASE_URL)
     
-    session =  Session(engine) 
+    session = get_session()
 
     db_user = session.scalar(
         select(User).where(
