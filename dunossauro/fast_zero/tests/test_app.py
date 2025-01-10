@@ -3,11 +3,11 @@ from http import HTTPStatus
 from fast_zero.schemas import UserPublic
 
 
-def test_root_deve_retornar_ok_e_ola_mundo(client):
+def test_root_ola_mundo(client):
     response = client.get("/")
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {"message": "oi"}
+    assert response.json() == {"message": "Ola, mundo!"}
 
 
 def test_create_user(client):
@@ -27,13 +27,11 @@ def test_create_user(client):
     }
 
 
-def test_create_user_should_return_400_username_exists__exercicio(
-    client, user
-):
+def test_pos_create_user_exists(client, user):
     response = client.post(
-        "/users/",
+        "/users",
         json={
-            "username": user.username,
+            "username": "Teste",
             "email": "alice@example.com",
             "password": "secret",
         },
@@ -42,30 +40,17 @@ def test_create_user_should_return_400_username_exists__exercicio(
     assert response.json() == {"detail": "Username already exists"}
 
 
-def test_create_user_should_return_400_email_exists__exercicio(client, user):
+def test_pos_create_email_exists(client, user):
     response = client.post(
-        "/users/",
+        "/users",
         json={
-            "username": "alice",
-            "email": user.email,
+            "username": "sste",
+            "email": "teste@test.com",
             "password": "secret",
         },
     )
     assert response.status_code == HTTPStatus.BAD_REQUEST
     assert response.json() == {"detail": "Email already exists"}
-
-
-def test_update_user_should_return_not_found__exercicio(client):
-    response = client.put(
-        "/users/666",
-        json={
-            "username": "bob",
-            "email": "bob@example.com",
-            "password": "mynewpassword",
-        },
-    )
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {"detail": "User not found"}
 
 
 def test_read_users(client):
@@ -78,6 +63,24 @@ def test_read_users_with_users(client, user):
     user_schema = UserPublic.model_validate(user).model_dump()
     response = client.get("/users/")
     assert response.json() == {"users": [user_schema]}
+
+
+def test_read_only_user(client, user):
+    response = client.get(f"/users/{user.id}")
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        "username": user.username,
+        "email": user.email,
+        "id": user.id,
+    }
+
+
+def test_read_only_user_wrong(client, user):
+    response = client.get(f"/users/{user.id + 1}")
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "User not found"}
 
 
 def test_update_user(client, user):
@@ -95,6 +98,19 @@ def test_update_user(client, user):
         "email": "bob@example.com",
         "id": 1,
     }
+
+
+def test_update_user_wrong_index(client, user):
+    response = client.put(
+        "/users/99",
+        json={
+            "username": "bob",
+            "email": "bob@example.com",
+            "password": "mynewpassword",
+        },
+    )
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "User not found"}
 
 
 def test_update_integrity_error(client, user):
@@ -127,5 +143,12 @@ def test_update_integrity_error(client, user):
 def test_delete_user(client, user):
     response = client.delete("/users/1")
 
-    #  assert response.status_code == HTTPStatus.OK
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {"message": "User deleted"}
+
+
+def test_delete_index_not_exist(client, user):
+    response = client.delete("/users/99")
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "User not found"}

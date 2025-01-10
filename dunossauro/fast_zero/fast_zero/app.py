@@ -14,10 +14,7 @@ app = FastAPI()
 
 @app.get("/", status_code=HTTPStatus.OK, response_model=Message)
 def read_root():
-    return {"message": "oi"}
-
-
-database = []
+    return {"message": "Ola, mundo!"}
 
 
 @app.post("/users/", status_code=HTTPStatus.CREATED, response_model=UserPublic)
@@ -59,13 +56,14 @@ def read_users(
 
 
 @app.get("/users/{user_id}", response_model=UserPublic)
-def read_users_only(user_id: int):
-    if user_id > len(database) or user_id < 1:
+def read_user(user_id: int, session: Session = Depends(get_session)):
+    db_user = session.scalar(select(User).where(User.id == user_id))
+    if not db_user:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail="User not found"
         )
 
-    return database[user_id - 1]
+    return db_user
 
 
 @app.put("/users/{user_id}", response_model=UserPublic)
