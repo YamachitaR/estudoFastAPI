@@ -95,12 +95,15 @@ def update_user(
 
 
 @app.delete("/users/{user_id}", response_model=Message)
-def delete_user(user_id: int):
-    if user_id > len(database) or user_id < 1:
+def delete_user(user_id: int, session: Session = Depends(get_session)):
+    db_user = session.scalar(select(User).where(User.id == user_id))
+
+    if not db_user:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail="User not found"
         )
 
-    del database[user_id - 1]
+    session.delete(db_user)
+    session.commit()
 
     return {"message": "User deleted"}
