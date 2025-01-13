@@ -31,6 +31,7 @@ pytest-cov = "^6.0.0"
 taskipy = "^1.14.1"
 ruff = "^0.8.6"
 factory-boy = "^3.3.1"
+freezegun = "^1.5.1"
 
 [tool.ruff]
 line-length = 79
