@@ -1,0 +1,4 @@
+fastapi[all]
+Jinja2
+uvicorn
+py-grpc-prometheus
